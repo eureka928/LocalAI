@@ -60,6 +60,35 @@ diffusers:
   scheduler_type: "k_dpmpp_sde"
 ```
 
+### Default GPU Layer Mode
+
+By default, LocalAI offloads all model layers to the GPU (`gpu_layers: 9999999`). You can change this behavior globally using the `--default-gpu-layers` flag or the `LOCALAI_DEFAULT_GPU_LAYERS` environment variable:
+
+| Mode | Value | Behavior |
+|------|-------|----------|
+| `max` | (default) | Offload all layers to GPU |
+| `auto` | `-1` sent to backend | Let the backend (e.g. llama.cpp) auto-fit layers based on available VRAM |
+| `<number>` | e.g. `20` | Fixed number of layers to offload |
+
+```bash
+# Let llama.cpp decide how many layers to offload
+local-ai --default-gpu-layers=auto
+
+# Or via environment variable
+LOCALAI_DEFAULT_GPU_LAYERS=auto local-ai
+
+# Fixed number of layers
+LOCALAI_DEFAULT_GPU_LAYERS=20 local-ai
+```
+
+Per-model `gpu_layers` in YAML config always takes precedence over the global default. You can also set `gpu_layers: -1` in a model config to enable auto-fit for a specific model.
+
+This setting can also be changed at runtime via the [runtime settings API]({{%relref "features/runtime-settings" %}}).
+
+{{% notice icon="⚡" context="warning" %}}
+**Note on Memory Reclaimer interaction:** When using `auto` mode with the memory reclaimer (`LOCALAI_MEMORY_RECLAIMER=true`), be aware that partial GPU offloading can cause thrashing — the reclaimer may evict models that were intentionally partially offloaded. For multi-model serving, `max` mode with the memory reclaimer is recommended. Use `auto` mode primarily for single-model setups or when the memory reclaimer is disabled.
+{{% /notice %}}
+
 ### Multi-GPU Support
 
 For multi-GPU support with diffusers, you need to configure the model with `tensor_parallel_size` set to the number of GPUs you want to use.

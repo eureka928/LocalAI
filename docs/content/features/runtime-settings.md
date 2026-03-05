@@ -111,6 +111,7 @@ The `runtime_settings.json` file follows this structure:
   "force_eviction_when_busy": false,
   "lru_eviction_max_retries": 30,
   "lru_eviction_retry_interval": "1s",
+  "default_gpu_layers": "max",
   "threads": 8,
   "context_size": 2048,
   "f16": false,
