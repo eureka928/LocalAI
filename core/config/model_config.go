@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/mudler/LocalAI/core/schema"
@@ -481,6 +482,26 @@ func (cfg *ModelConfig) SetDefaults(opts ...ConfigLoaderOption) {
 	}
 
 	guessDefaultsFromFile(cfg, lo.modelPath, ctx)
+
+	// Apply global GPU layers mode when not explicitly set by model config or GGUF detection
+	if cfg.NGPULayers == nil {
+		switch lo.defaultGPULayers {
+		case "auto":
+			autoVal := -1
+			cfg.NGPULayers = &autoVal
+		case "", "max":
+			maxVal := 9999999
+			cfg.NGPULayers = &maxVal
+		default:
+			if n, err := strconv.Atoi(lo.defaultGPULayers); err == nil {
+				cfg.NGPULayers = &n
+			} else {
+				maxVal := 9999999
+				cfg.NGPULayers = &maxVal
+			}
+		}
+	}
+
 	cfg.syncKnownUsecasesFromString()
 }
 
